@@ -7,6 +7,7 @@ Personal PowerShell helper module.
 - PowerShell 7+
 - Windows
 - Git
+- [Just](#develop) (Optional for develop)
 
 ## Build
 
@@ -38,6 +39,22 @@ Install for all users:
 .\install.ps1 -Scope AllUsers
 ```
 
+Install for this shell session
+
+```powershell
+Import-Module ./O.Ps.psd1 -Force
+```
+
+## Develop
+
+```powershell
+# run build.ps1
+just build # just b
+
+# install and activate in current shell
+just install # just i
+```
+
 ## Usage
 
 After installation, open a new PowerShell session and run the commands directly.
@@ -52,6 +69,7 @@ gfu
 gloc
 gpoc
 gpof
+guser
 proxyOff
 proxyOn
 unset

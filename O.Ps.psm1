@@ -48,6 +48,13 @@ function gpof { git push origin master --force-with-lease }
 # --- EndRegion: gpof.ps1 ---
 
 # --- Region: guser.ps1 ---
+function _check_in_git {
+    git rev-parse --is-inside-work-tree > $null 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "Not inside a git repository. Please navigate to a git repository and try again."
+    }
+}
+
 function guser {
     param (
         [ValidateSet("Noai-oss", "ooooo")]
@@ -56,7 +63,7 @@ function guser {
         [switch]$Write,
         [switch]$Global
     )
-    
+    _check_in_git
     if ($UserName -eq "Noai-oss") {
         $UserEmail = "jiuwoxiao@outlook.com"
     }
@@ -76,12 +83,12 @@ function guser {
     }
     else {
         if ($Global) {
-            Write-Host ">>> Please run the following commands to set git user name and email globally:"
+            Write-Host ">>> Please run the following commands to set git user name and email globally:" -ForegroundColor Green
             Write-Host "git config --global user.name '$UserName'"
             Write-Host "git config --global user.email '$UserEmail'"
         }
         else {
-            Write-Host ">>> Please run the following commands to set git user name and email locally:"
+            Write-Host ">>> Please run the following commands to set git user name and email locally:" -ForegroundColor Green
             Write-Host "git config user.name '$UserName'"
             Write-Host "git config user.email '$UserEmail'"
         }
