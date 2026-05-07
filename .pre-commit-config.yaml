@@ -15,6 +15,14 @@ repos:
 
   - repo: local
     hooks:
+      - id: build-module
+        name: Build module
+        entry: pwsh -NoProfile -ExecutionPolicy Bypass -File build.ps1
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
       - id: commit-style-check
         name: Custom commit message style check
         entry: odev-commit-msg

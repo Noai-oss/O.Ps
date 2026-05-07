@@ -77,13 +77,13 @@ function guser {
     else {
         if ($Global) {
             Write-Host ">>> Please run the following commands to set git user name and email globally:"
-            Write-Host "git config --global user.name $UserName"
-            Write-Host "git config --global user.email $UserEmail"
+            Write-Host "git config --global user.name '$UserName'"
+            Write-Host "git config --global user.email '$UserEmail'"
         }
         else {
             Write-Host ">>> Please run the following commands to set git user name and email locally:"
-            Write-Host "git config user.name $UserName"
-            Write-Host "git config user.email $UserEmail"
+            Write-Host "git config user.name '$UserName'"
+            Write-Host "git config user.email '$UserEmail'"
         }
     }
 }
