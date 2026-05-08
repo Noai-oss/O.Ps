@@ -33,17 +33,26 @@ function gfu { git fetch upstream }
 # --- EndRegion: gfu.ps1 ---
 
 # --- Region: gloc.ps1 ---
-function gloc { git pull origin master }
+function gloc {
+    $_current_branch = git branch --show-current --no-color
+    git pull origin $_current_branch
+}
 
 # --- EndRegion: gloc.ps1 ---
 
 # --- Region: gpoc.ps1 ---
-function gpoc { git push origin master }
+function gpoc {
+    $_current_branch = git branch --show-current --no-color
+    git push origin $_current_branch
+}
 
 # --- EndRegion: gpoc.ps1 ---
 
 # --- Region: gpof.ps1 ---
-function gpof { git push origin master --force-with-lease }
+function gpof {
+    $_current_branch = git branch --show-current --no-color
+    git push origin $_current_branch --force-with-lease
+}
 
 # --- EndRegion: gpof.ps1 ---
 

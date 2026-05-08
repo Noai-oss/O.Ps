@@ -114,4 +114,4 @@ else {
     Write-Host "INFO: FunctionsToExport unchanged" -ForegroundColor DarkGray
 }
 
-Write-Host "Done: Build completed. Run: Import-Module .\O.Ps -Force" -ForegroundColor Cyan
+Write-Host "Done: Build completed. Run: Import-Module .\O.Ps.psd1 -Force" -ForegroundColor Cyan
