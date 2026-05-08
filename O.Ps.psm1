@@ -63,7 +63,7 @@ function guser {
         [switch]$Write,
         [switch]$Global
     )
-    _check_in_git
+
     if ($UserName -eq "Noai-oss") {
         $UserEmail = "jiuwoxiao@outlook.com"
     }
@@ -72,6 +72,7 @@ function guser {
     }
 
     if ($Write) {
+        _check_in_git
         if ($Global) {
             git config --global user.name $UserName
             git config --global user.email $UserEmail
