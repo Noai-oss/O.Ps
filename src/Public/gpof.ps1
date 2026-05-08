@@ -1,1 +1,4 @@
-function gpof { git push origin master --force-with-lease }
+function gpof {
+    $_current_branch = git branch --show-current --no-color
+    git push origin $_current_branch --force-with-lease
+}
