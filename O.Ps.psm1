@@ -1,7 +1,30 @@
 # ==========================================
 # Auto-generated. Do not edit directly.
-# Source: src/Public/*.ps1
 # ==========================================
+
+# --- Private Region: Get-GitCurrentBranch.ps1 ---
+function Get-GitCurrentBranch {
+    Test-GitRepository
+
+    $branch = git branch --show-current --no-color
+    if ([string]::IsNullOrWhiteSpace($branch)) {
+        throw 'Current Git HEAD is detached or branch name is empty.'
+    }
+
+    return $branch
+}
+
+# --- EndRegion: Get-GitCurrentBranch.ps1 ---
+
+# --- Private Region: Test-GitRepository.ps1 ---
+function Test-GitRepository {
+    git rev-parse --is-inside-work-tree > $null 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        throw "Not inside a git repository. Please navigate to a git repository and try again."
+    }
+}
+
+# --- EndRegion: Test-GitRepository.ps1 ---
 
 # --- Region: export.ps1 ---
 function export {
@@ -34,7 +57,7 @@ function gfu { git fetch upstream }
 
 # --- Region: gloc.ps1 ---
 function gloc {
-    $_current_branch = git branch --show-current --no-color
+    $_current_branch = Get-GitCurrentBranch
     git pull origin $_current_branch
 }
 
@@ -42,7 +65,7 @@ function gloc {
 
 # --- Region: gpoc.ps1 ---
 function gpoc {
-    $_current_branch = git branch --show-current --no-color
+    $_current_branch = Get-GitCurrentBranch
     git push origin $_current_branch
 }
 
@@ -50,20 +73,13 @@ function gpoc {
 
 # --- Region: gpof.ps1 ---
 function gpof {
-    $_current_branch = git branch --show-current --no-color
+    $_current_branch = Get-GitCurrentBranch
     git push origin $_current_branch --force-with-lease
 }
 
 # --- EndRegion: gpof.ps1 ---
 
 # --- Region: guser.ps1 ---
-function _check_in_git {
-    git rev-parse --is-inside-work-tree > $null 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "Not inside a git repository. Please navigate to a git repository and try again."
-    }
-}
-
 function guser {
     param (
         [ValidateSet("Noai-oss", "ooooo")]
@@ -81,12 +97,12 @@ function guser {
     }
 
     if ($Write) {
-        _check_in_git
         if ($Global) {
             git config --global user.name $UserName
             git config --global user.email $UserEmail
         }
         else {
+            Test-GitRepository
             git config user.name $UserName
             git config user.email $UserEmail
         }
