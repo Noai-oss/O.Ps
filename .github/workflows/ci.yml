@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build module
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Validate manifest
+        shell: pwsh
+        run: Test-ModuleManifest ./O.Ps.psd1 | Format-List
+
+      - name: Import module and list commands
+        shell: pwsh
+        run: |
+          Import-Module ./O.Ps.psd1 -Force
+          Get-Command -Module O.Ps
+
+      - name: Ensure build output is committed
+        shell: pwsh
+        run: |
+          $changes = git status --porcelain
+          if ($changes) {
+            git diff
+            throw "Build output is not up to date. Run ./build.ps1 and commit the result."
+          }

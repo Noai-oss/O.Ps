@@ -1,10 +1,3 @@
-function _check_in_git {
-    git rev-parse --is-inside-work-tree > $null 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        throw "Not inside a git repository. Please navigate to a git repository and try again."
-    }
-}
-
 function guser {
     param (
         [ValidateSet("Noai-oss", "ooooo")]
@@ -22,12 +15,12 @@ function guser {
     }
 
     if ($Write) {
-        _check_in_git
         if ($Global) {
             git config --global user.name $UserName
             git config --global user.email $UserEmail
         }
         else {
+            Test-GitRepository
             git config user.name $UserName
             git config user.email $UserEmail
         }
