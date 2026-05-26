@@ -31,7 +31,7 @@ function Invoke-GitLogGraphReverse {
 }
 
 function Invoke-GitSyncUpstream {
-    $_current_branch = git branch --show-current 2>$null
+    $_current_branch = git branch --show-current --no-color 2>$null
     if ($_current_branch) {
         git fetch upstream $_current_branch
         git merge upstream/$_current_branch
