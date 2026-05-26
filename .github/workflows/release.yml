@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  github-release:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+
+      - name: Validate release tag
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+
+          if ($tag -notmatch '^v(?<Version>\d+\.\d+\.\d+)$') {
+            throw "Release tags must use vMAJOR.MINOR.PATCH: $tag"
+          }
+
+          $manifestVersion = (Test-ModuleManifest -Path ./O.Ps.psd1).Version.ToString()
+          if ($manifestVersion -ne $Matches.Version) {
+            throw "Tag $tag does not match module version $manifestVersion"
+          }
+
+      - name: Build module
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Validate manifest
+        shell: pwsh
+        run: Test-ModuleManifest -Path ./O.Ps.psd1 | Format-List
+
+      - name: Package module
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          Compress-Archive `
+            -Path ./O.Ps.psd1, ./O.Ps.psm1, ./install.ps1, ./README.md, ./LICENSE `
+            -DestinationPath "O.Ps-$tag.zip" `
+            -Force
+
+      - name: Generate release notes
+        env:
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          git-cliff `
+            --config cliff.toml `
+            --current `
+            --strip header `
+            -o release-notes.md
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          $asset = "O.Ps-$tag.zip"
+
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release edit $tag --title $tag --notes-file release-notes.md
+            gh release upload $tag $asset --clobber
+          }
+          else {
+            gh release create $tag $asset `
+              --title $tag `
+              --notes-file release-notes.md `
+              --verify-tag
+          }
