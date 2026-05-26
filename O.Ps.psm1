@@ -45,6 +45,30 @@ function export {
 
 # --- EndRegion: export.ps1 ---
 
+# --- Region: gcd.ps1 ---
+function gcd {
+    $_remote = "origin"
+
+    if ((git remote) -contains "upstream") {
+        $_remote = "upstream"
+    }
+    $_remote_head = git symbolic-ref --short "refs/remotes/$_remote/HEAD" 2>$null
+
+    if (-not $_remote_head) {
+        git remote set-head $_remote --auto | Out-Null
+        $_remote_head = git symbolic-ref --short "refs/remotes/$_remote/HEAD" 2>$null
+    }
+
+    if ($_remote_head) {
+        $_remote_default_branch = $_remote_head -replace "^$_remote/"
+        git checkout $_remote_default_branch
+    } else {
+        Write-Error "Fail to get the remote default branch, please check for internet or whether $_remote exists."
+    }
+}
+
+# --- EndRegion: gcd.ps1 ---
+
 # --- Region: gfo.ps1 ---
 function gfo { git fetch origin }
 
@@ -164,4 +188,4 @@ function vda { deactivate }
 
 # --- EndRegion: vda.ps1 ---
 
-Export-ModuleMember -Function @('export', 'gfo', 'gfu', 'gloc', 'gpoc', 'gpof', 'guser', 'proxyOff', 'proxyOn', 'unset', 'va', 'vda')
+Export-ModuleMember -Function @('export', 'gcd', 'gfo', 'gfu', 'gloc', 'gpoc', 'gpof', 'guser', 'proxyOff', 'proxyOn', 'unset', 'va', 'vda')

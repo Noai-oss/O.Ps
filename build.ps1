@@ -179,7 +179,7 @@ else {
 if (-not (Test-SameList -A $CurrentFunctions -B $ExportList)) {
     Update-ModuleManifest `
         -Path $ManifestPath `
-        -FunctionsToExport $Functions
+        -FunctionsToExport $ExportList
 
     Write-Host "OK: Updated FunctionsToExport in $ManifestPath" -ForegroundColor Green
 }
