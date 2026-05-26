@@ -54,8 +54,7 @@ jobs:
             throw "Invalid release version: $version"
           }
 
-          git rev-parse --verify --quiet $tag *> $null
-          if ($LASTEXITCODE -eq 0) {
+          if (git tag --list $tag) {
             throw "Tag already exists: $tag"
           }
 
@@ -142,8 +141,7 @@ jobs:
             throw "Tag $tag does not match module version $manifestVersion"
           }
 
-          git ls-remote --exit-code --tags origin "refs/tags/$tag" *> $null
-          if ($LASTEXITCODE -eq 0) {
+          if (git ls-remote --tags origin "refs/tags/$tag") {
             throw "Tag already exists: $tag"
           }
 
