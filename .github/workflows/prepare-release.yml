@@ -1,0 +1,151 @@
+name: Prepare Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without v; leave empty to use git-cliff"
+        required: false
+        type: string
+  pull_request:
+    types:
+      - closed
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare-release:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+
+      - name: Determine release version
+        id: release-version
+        shell: pwsh
+        run: |
+          $inputVersion = '${{ inputs.version }}'.Trim()
+
+          if ($inputVersion) {
+            $version = $inputVersion.TrimStart('v')
+            $tag = "v$version"
+          }
+          else {
+            $tag = (git-cliff --config cliff.toml --bumped-version).Trim()
+            $version = $tag.TrimStart('v')
+            $tag = "v$version"
+          }
+
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "Invalid release version: $version"
+          }
+
+          git rev-parse --verify --quiet $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            throw "Tag already exists: $tag"
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Update module version
+        shell: pwsh
+        run: |
+          $version = '${{ steps.release-version.outputs.version }}'
+          $manifestPath = './O.Ps.psd1'
+          $content = Get-Content -LiteralPath $manifestPath -Raw
+          $content = $content -replace "(?m)^ModuleVersion\s*=\s*'[^']+'", "ModuleVersion = '$version'"
+          Set-Content -LiteralPath $manifestPath -Value $content -NoNewline
+          Test-ModuleManifest -Path $manifestPath | Out-Null
+
+      - name: Update changelog
+        env:
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          git-cliff `
+            --config cliff.toml `
+            --tag "${{ steps.release-version.outputs.tag }}" `
+            -o CHANGELOG.md
+
+      - name: Build module
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Create release pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          add-paths: |
+            CHANGELOG.md
+            O.Ps.psd1
+            O.Ps.psm1
+          branch: chore/prepare-${{ steps.release-version.outputs.tag }}
+          commit-message: "chore(release): prepare for ${{ steps.release-version.outputs.tag }}"
+          title: "chore(release): prepare for ${{ steps.release-version.outputs.tag }}"
+          body: |
+            Prepare release ${{ steps.release-version.outputs.tag }}.
+
+            This updates the module version and prepends the generated changelog entry.
+          delete-branch: true
+          token: ${{ secrets.PAT }}
+
+  tag-release:
+    if: >
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == github.event.repository.default_branch &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'chore/prepare-v')
+    runs-on: windows-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+
+      - name: Create and push release tag
+        shell: pwsh
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          $tag = $env:HEAD_REF -replace '^chore/prepare-', ''
+
+          if ($tag -notmatch '^v(?<Version>\d+\.\d+\.\d+)$') {
+            throw "Invalid release tag: $tag"
+          }
+
+          $checkedOutSha = git rev-parse HEAD
+          if ($checkedOutSha -ne $env:MERGE_SHA) {
+            throw "Checked out $checkedOutSha, expected $env:MERGE_SHA"
+          }
+
+          $manifestVersion = (Test-ModuleManifest -Path ./O.Ps.psd1).Version.ToString()
+          if ($Matches.Version -ne $manifestVersion) {
+            throw "Tag $tag does not match module version $manifestVersion"
+          }
+
+          git ls-remote --exit-code --tags origin "refs/tags/$tag" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            throw "Tag already exists: $tag"
+          }
+
+          git tag $tag $env:MERGE_SHA
+          git push origin "refs/tags/$tag"
