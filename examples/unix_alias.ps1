@@ -82,9 +82,9 @@ foreach ($_alias in $GitShortcutsMap.Keys) {
 
     $_existing_cmd = Get-Command -Name $_alias -CommandType All -ErrorAction SilentlyContinue
 
-    if ($_existing_cmd) {
+    if ($_existing_cmd -and $_existing_cmd.CommandType -ne 'Alias') {
         Write-Warning "Alias '$_alias' is conflicted by other app '$_existing_cmd' ($($_existing_cmd.CommandType))."
     } else{
-        Set-Alias -Name $_alias -Value $_target_function
+        Set-Alias -Name $_alias -Value $_target_function -Force
     }
 }
