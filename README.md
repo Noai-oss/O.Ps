@@ -62,32 +62,19 @@ PowerShell will auto-load the module.
 
 Available commands:
 
-```text
-export
-Get-RemoteFileHash
-gfo
-gfu
-gloc
-gpoc
-gpof
-guser
-proxyOff
-proxyOn
-unset
-va
-vda
-```
-
-Compute a remote file's hash directly from its download stream:
-
-```powershell
-# SHA256 is the default algorithm.
-Get-RemoteFileHash 'https://example.com/file.zip'
-
-# Choose SHA1, SHA256, SHA384, SHA512, or MD5.
-Get-RemoteFileHash -Url 'https://example.com/file.zip' -Algorithm SHA512
-
-# Process multiple URLs from the pipeline.
-'https://example.com/a.zip', 'https://example.com/b.zip' |
-    Get-RemoteFileHash
-```
+| Command | Description |
+| --- | --- |
+| `export` | Set an environment variable using `NAME=value`. |
+| `gcd` | Check out the default branch of `upstream`, or `origin` if no upstream remote exists. |
+| [`Get-RemoteFileHash`](docs/commands/Get-RemoteFileHash.md) | Compute a remote file's hash. |
+| `gfo` | Fetch from `origin`. |
+| `gfu` | Fetch from `upstream`. |
+| `gloc` | Pull the current branch from `origin`. |
+| `gpoc` | Push the current branch to `origin`. |
+| `gpof` | Push the current branch to `origin` with `--force-with-lease`. |
+| `guser` | Show or apply a predefined Git user identity. |
+| `proxyOff` | Clear the HTTP and HTTPS proxy environment variables. |
+| `proxyOn` | Set the HTTP and HTTPS proxy to `http://127.0.0.1:7897`. |
+| `unset` | Remove an environment variable. |
+| `va` | Activate a Python virtual environment; defaults to `.venv`. |
+| `vda` | Deactivate the current Python virtual environment. |
