@@ -69,6 +69,33 @@ function gcd {
 
 # --- EndRegion: gcd.ps1 ---
 
+# --- Region: Get-RemoteFileHash.ps1 ---
+function Get-RemoteFileHash {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
+        [string]$Url,
+
+        [ValidateSet('SHA1', 'SHA256', 'SHA384', 'SHA512', 'MD5')]
+        [string]$Algorithm = 'SHA256'
+    )
+
+    process {
+        $stream = $null
+        $webClient = [System.Net.WebClient]::new()
+        try {
+            $stream = $webClient.OpenRead($Url)
+            Get-FileHash -InputStream $stream -Algorithm $Algorithm
+        }
+        finally {
+            if ($null -ne $stream) { $stream.Dispose() }
+            $webClient.Dispose()
+        }
+    }
+}
+
+# --- EndRegion: Get-RemoteFileHash.ps1 ---
+
 # --- Region: gfo.ps1 ---
 function gfo { git fetch origin }
 
@@ -188,4 +215,4 @@ function vda { deactivate }
 
 # --- EndRegion: vda.ps1 ---
 
-Export-ModuleMember -Function @('export', 'gcd', 'gfo', 'gfu', 'gloc', 'gpoc', 'gpof', 'guser', 'proxyOff', 'proxyOn', 'unset', 'va', 'vda')
+Export-ModuleMember -Function @('export', 'gcd', 'Get-RemoteFileHash', 'gfo', 'gfu', 'gloc', 'gpoc', 'gpof', 'guser', 'proxyOff', 'proxyOn', 'unset', 'va', 'vda')

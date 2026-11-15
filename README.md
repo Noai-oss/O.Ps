@@ -62,17 +62,19 @@ PowerShell will auto-load the module.
 
 Available commands:
 
-```text
-export
-gfo
-gfu
-gloc
-gpoc
-gpof
-guser
-proxyOff
-proxyOn
-unset
-va
-vda
-```
+| Command | Description |
+| --- | --- |
+| `export` | Set an environment variable using `NAME=value`. |
+| `gcd` | Check out the default branch of `upstream`, or `origin` if no upstream remote exists. |
+| [`Get-RemoteFileHash`](docs/commands/Get-RemoteFileHash.md) | Compute a remote file's hash. |
+| `gfo` | Fetch from `origin`. |
+| `gfu` | Fetch from `upstream`. |
+| `gloc` | Pull the current branch from `origin`. |
+| `gpoc` | Push the current branch to `origin`. |
+| `gpof` | Push the current branch to `origin` with `--force-with-lease`. |
+| `guser` | Show or apply a predefined Git user identity. |
+| `proxyOff` | Clear the HTTP and HTTPS proxy environment variables. |
+| `proxyOn` | Set the HTTP and HTTPS proxy to `http://127.0.0.1:7897`. |
+| `unset` | Remove an environment variable. |
+| `va` | Activate a Python virtual environment; defaults to `.venv`. |
+| `vda` | Deactivate the current Python virtual environment. |
